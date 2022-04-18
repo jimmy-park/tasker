@@ -68,19 +68,20 @@ private:
         std::generate(std::begin(indices), std::end(indices), [n, size = count_]() mutable { return n++ % size; });
 
         while (true) {
+            std::optional<T> value;
+
             // Steal task
             for (const auto index : indices) {
-                if (auto value = queues_[index].TryPop()) {
-                    function(*std::move(value));
-                    continue;
-                }
+                if (value = queues_[index].TryPop(); value)
+                    break;
             }
 
-            if (auto value = queue.Pop()) {
-                function(*std::move(value));
-            } else {
-                break;
+            if (!value) {
+                if (value = queue.Pop(); !value)
+                    break;
             }
+
+            function(*std::move(value));
         }
     }
 

@@ -11,7 +11,7 @@ Implement task system to processing data asynchronously
 
 int main()
 {
-    Tasker<int> tasker { [](auto value) { std::cout << value; } };
+    Tasker<int> tasker { [](auto&& value) { std::cout << value; } };
 
     tasker.Post(42);
 
@@ -19,7 +19,7 @@ int main()
 }
 ```
 
-[Compiler Explorer](https://godbolt.org/z/T4b4vP5h3)
+[Compiler Explorer](https://godbolt.org/z/1MrfG3YE8)
 
 ### Use as a member variable
 
@@ -29,7 +29,7 @@ int main()
 class A {
 public:
     A()
-        : tasker_ { [this](auto value) { Process(std::move(value)); } }
+        : tasker_ { [this](auto&& value) { Process(std::move(value)); } }
     {
     }
 
@@ -63,7 +63,7 @@ int main()
 }
 ```
 
-[Compiler Explorer](https://godbolt.org/z/scoz3539v)
+[Compiler Explorer](https://godbolt.org/z/754brG57M)
 
 ## Reference
 
