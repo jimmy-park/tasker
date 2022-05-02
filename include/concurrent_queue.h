@@ -1,15 +1,42 @@
 #ifndef CONCURRENT_QUEUE_H_
 #define CONCURRENT_QUEUE_H_
 
+#include <cassert>
 #include <condition_variable>
 #include <optional>
 #include <queue>
 #include <shared_mutex>
+#include <type_traits>
 #include <utility>
 
 template <typename T>
 class ConcurrentQueue {
 public:
+    ConcurrentQueue() = default;
+    ~ConcurrentQueue() = default;
+    ConcurrentQueue(const ConcurrentQueue&) = delete;
+    ConcurrentQueue& operator=(const ConcurrentQueue&) = delete;
+
+    ConcurrentQueue(ConcurrentQueue&& other) noexcept(std::is_nothrow_move_assignable_v<std::queue<T>>)
+    {
+        std::lock_guard lock { other.mutex_ };
+
+        queue_ = std::move(other.queue_);
+    }
+
+    ConcurrentQueue& operator=(ConcurrentQueue&& other) noexcept(std::is_nothrow_move_assignable_v<std::queue<T>>)
+    {
+        assert(this != &other);
+
+        {
+            std::scoped_lock lock { mutex_, other.mutex_ };
+
+            queue_ = std::move(other.queue_);
+        }
+
+        return *this;
+    }
+
     bool Empty() const
     {
         std::shared_lock lock { mutex_ };
